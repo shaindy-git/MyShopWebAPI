@@ -28,14 +28,14 @@ namespace MyShopWebAPI.Controllers
         [HttpPost("register")]
         public ActionResult<User> Register([FromBody] User user)
         {
-           
-            if(user == null)
+
+            if (user == null)
             {
                 return StatusCode(400, "username  and password are required");
             }
             try
             {
-                int numberOfUsers = System.IO.File.Exists("users.txt")?System.IO.File.ReadLines("users.txt").Count():0;
+                int numberOfUsers = System.IO.File.Exists("users.txt") ? System.IO.File.ReadLines("users.txt").Count() : 0;
                 user.UserId = numberOfUsers + 1;
                 if (System.IO.File.Exists("users.txt"))
                 {
@@ -48,11 +48,11 @@ namespace MyShopWebAPI.Controllers
                 return CreatedAtAction(nameof(Get), new { id = user.UserId }, user);
 
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return StatusCode(500, "Error writing user to file: " + ex.Message);
             }
-            
+
 
         }
 
@@ -77,7 +77,7 @@ namespace MyShopWebAPI.Controllers
                     {
                         User u = JsonSerializer.Deserialize<User>(currentUserInFile);
                         if (u.user_name == user.user_name && u.password == user.password)
-                            return Ok(user);
+                            return Ok(new { UserId = u.UserId });
                     }
                 }
                 return Unauthorized("Invalid username or password.");
@@ -94,8 +94,50 @@ namespace MyShopWebAPI.Controllers
 
         // PUT api/<UsersController>/5
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody]string value)
+        public void Put(int id, [FromBody] User u)
         {
+            User newUser = new User();
+            
+            if (u.first_name != null)
+            {
+                newUser.first_name = u.first_name;
+            }
+            if (u.last_name != null)
+            {
+                newUser.last_name = u.last_name;
+            }
+            if (u.password != null)
+            {
+                newUser.password = u.password;
+            }
+            if (u.user_name != null)
+            {
+                newUser.user_name = u.user_name;
+            }
+            newUser.UserId = id;
+            string filePath = Path.Combine(Directory.GetCurrentDirectory(), "users.txt");
+
+            string textToReplace = string.Empty;
+            using (StreamReader reader = System.IO.File.OpenText(filePath))
+            {
+                string currentUserInFile;
+                while ((currentUserInFile = reader.ReadLine()) != null)
+                {
+
+                    User user = JsonSerializer.Deserialize<User>(currentUserInFile);
+                    if (user.UserId == id)
+                        textToReplace = currentUserInFile;
+                }
+            }
+
+            if (textToReplace != string.Empty)
+            {
+                string text = System.IO.File.ReadAllText(filePath);
+                text = text.Replace(textToReplace, JsonSerializer.Serialize(newUser));
+                System.IO.File.WriteAllText(filePath, text);
+            }
+
+
         }
 
         // DELETE api/<UsersController>/5

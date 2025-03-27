@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration.UserSecrets;
 
 
-namespace MyShopWebAPI
+namespace Entities
 {
     public class User
     {
@@ -10,6 +10,9 @@ namespace MyShopWebAPI
         public String password { get; set; }
         public String first_name { get; set; }
         public String last_name { get; set; }
+
+
+        public User() { }
 
         public User(String user_name, String password, String first_name, String last_name)
         {
